@@ -24,13 +24,14 @@ public class Main {
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());
         } catch (ParsingException e) {
-            System.out.println(e.getMessage() +
-                    " \nLine Number: " + e.getToken().lineNumber +
-                    " - Position: " + e.getToken().position + "\n" +
-                    "Line: " + getLineFromSourceCode(sourceCode, e.getToken().lineNumber) + "\n");
+            Token token = e.getToken();
+
+            System.out.println(e.getMessage() + " --> "+ token.value + " <--" +
+                    " \nLine Number: " + token.lineNumber +
+                    " | Position: " + token.position + "\n" +
+                    "Line: " + getLineFromSourceCode(sourceCode, token.lineNumber) + "\n");
         }
     }
-
     public static String readFile(String filePath) throws IOException {
         return new String(Files.readAllBytes(Paths.get(filePath)));
     }

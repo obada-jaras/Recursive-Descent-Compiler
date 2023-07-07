@@ -18,9 +18,6 @@ public class Parser {
     }
 
 
-
-
-
     private void projectDeclaration() {
         projectDef();
         consumeExpectedToken(Token.Type.DOT);
@@ -109,10 +106,11 @@ public class Parser {
     }
 
     private void stmtList() {
-        while (isValidStatementStart(currentToken.type)) {
+        while (isValidStatementStart(currentToken.type) ||
+                currentToken.type == Token.Type.SEMICOLON) {    // statement is λ
             Token.Type type = currentToken.type;
 
-            if (type == Token.Type.SEMICOLON) {     // statement is λ
+            if (type == Token.Type.SEMICOLON) {         // statement is λ
                 consumeExpectedToken(Token.Type.SEMICOLON);
             } else {
                 statement();
@@ -120,28 +118,26 @@ public class Parser {
         }
     }
 
-    private boolean isValidStatementStart(Token.Type type) {
-        // statement state:
-        return type == Token.Type.NAME ||       // ass-stmt
-                type == Token.Type.INPUT ||      // inout-stmt
-                type == Token.Type.OUTPUT ||     // inout-stmt
-                type == Token.Type.IF ||         // if-stmt
-                type == Token.Type.LOOP ||       // loop-stmt
-                type == Token.Type.START ||      // compound-stmt
-                type == Token.Type.SEMICOLON;    // λ
-    }
-
     private void statement() {
         Token.Type type = currentToken.type;
 
         switch (type) {
             case NAME -> assStmt();
-            case INPUT -> inoutStmt();
-            case OUTPUT -> inoutStmt();
+            case INPUT, OUTPUT -> inoutStmt();
             case IF -> ifStmt();
             case LOOP -> loopStmt();
             case START -> compoundStmt();
         }
+    }
+
+    private boolean isValidStatementStart(Token.Type type) {
+        // statement state:
+        return type == Token.Type.NAME ||        // ass-stmt
+                type == Token.Type.INPUT ||      // inout-stmt
+                type == Token.Type.OUTPUT ||     // inout-stmt
+                type == Token.Type.IF ||         // if-stmt
+                type == Token.Type.LOOP ||       // loop-stmt
+                type == Token.Type.START;      // compound-stmt
     }
 
 
@@ -154,7 +150,8 @@ public class Parser {
     private void arithExp() {
         term();
 
-        while (currentToken.type == Token.Type.PLUS || currentToken.type == Token.Type.MINUS) {
+        while (currentToken.type == Token.Type.PLUS ||
+                currentToken.type == Token.Type.MINUS) {
             addSign();
             term();
         }
@@ -163,7 +160,9 @@ public class Parser {
     private void term() {
         factor();
 
-        while (currentToken.type == Token.Type.MULTIPLY || currentToken.type == Token.Type.DIVIDE || currentToken.type == Token.Type.REMINDER) {
+        while (currentToken.type == Token.Type.MULTIPLY ||
+                currentToken.type == Token.Type.DIVIDE ||
+                currentToken.type == Token.Type.REMINDER) {
             mulSign();
             factor();
         }
@@ -177,31 +176,37 @@ public class Parser {
         } else if (currentToken.type == Token.Type.NAME || currentToken.type == Token.Type.INTEGER_VALUE) {
             nameValue();
         } else {
-            error("Expected '(' or variable name, but found " + currentToken.type);
+            error("Expected '(', variable name, or integer value, but found " + currentToken.type);
         }
     }
 
     private void nameValue() {
-        if (currentToken.type == Token.Type.NAME || currentToken.type == Token.Type.INTEGER_VALUE) {
-            consumeExpectedToken(currentToken.type);
+        Token.Type type = currentToken.type;
+
+        if (type == Token.Type.NAME || type == Token.Type.INTEGER_VALUE) {
+            consumeExpectedToken(type);
         } else {
-            error("Expected variable name or integer value, but found " + currentToken.type);
+            error("Expected variable name or integer value, but found " + type);
         }
     }
 
     private void addSign() {
-        if (currentToken.type == Token.Type.PLUS || currentToken.type == Token.Type.MINUS) {
-            consumeExpectedToken(currentToken.type);
+        Token.Type type = currentToken.type;
+
+        if (type == Token.Type.PLUS || type == Token.Type.MINUS) {
+            consumeExpectedToken(type);
         } else {
-            error("Expected '+' or '-', but found " + currentToken.type);
+            error("Expected '+' or '-', but found " + type);
         }
     }
 
     private void mulSign() {
-        if (currentToken.type == Token.Type.MULTIPLY || currentToken.type == Token.Type.DIVIDE || currentToken.type == Token.Type.REMINDER) {
-            consumeExpectedToken(currentToken.type);
+        Token.Type type = currentToken.type;
+
+        if (type == Token.Type.MULTIPLY || type == Token.Type.DIVIDE || type == Token.Type.REMINDER) {
+            consumeExpectedToken(type);
         } else {
-            error("Expected '*', '/' or '%', but found " + currentToken.type);
+            error("Expected '*', '/' or '%', but found " + type);
         }
     }
 
@@ -272,8 +277,6 @@ public class Parser {
     }
 
 
-
-
     private void consumeExpectedToken(Token.Type expectedType) {
         if (currentToken.type == expectedType) {
             currentToken = tokens.poll(); // consume the token
@@ -283,8 +286,7 @@ public class Parser {
     }
 
     private void error(String errorMessage) {
-        throw new ParsingException("Error parsing tokens: " + errorMessage, currentToken);
+        throw new ParsingException("Error parsing tokens:\n" + errorMessage, currentToken);
     }
-
 }
 
