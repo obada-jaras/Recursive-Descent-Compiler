@@ -49,7 +49,6 @@ public class Scanner {
         return tokens;
     }
 
-    // Handles whitespace characters in the source code
     private int handleWhitespace(Queue<Token> tokens, StringBuilder currentToken, char c, int i) {
         if (currentToken.length() > 0) {
             addToken(tokens, currentToken);
@@ -65,7 +64,6 @@ public class Scanner {
         return i;
     }
 
-    // Handles symbol characters in the source code
     private int handleSymbol(Queue<Token> tokens, StringBuilder currentToken, char c, int i) {
         if (currentToken.length() > 0) {
             addToken(tokens, currentToken);
